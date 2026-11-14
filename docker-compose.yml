@@ -1,0 +1,22 @@
+# 闸机行程整理应用：一条命令即可启动
+#
+#   docker compose up --build
+#
+# 浏览器打开 http://localhost:8000
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      # SQLite 数据库落在命名卷里，容器重建数据不丢
+      APP_DB: /data/app.db
+      # 生产环境请换成随机长字符串（用于会话签名）
+      SECRET_KEY: ${SECRET_KEY:-dev-secret-change-me}
+    volumes:
+      - app-data:/data
+    restart: unless-stopped
+
+volumes:
+  app-data:

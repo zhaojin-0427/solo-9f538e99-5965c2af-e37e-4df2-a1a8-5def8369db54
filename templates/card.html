@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}卡 {{ card_no }} · 闸机行程整理{% endblock %}
+{% block content %}
+<div class="card">
+  <h1>卡号 <span class="mono">{{ card_no }}</span></h1>
+  <p class="muted">
+    现行事件 {{ events|length }} 条 · 配对行程 {{ trips|length }} 段 · 待核查异常 {{ anomalies|length }} 条
+    （时间均为 UTC；行程与异常基于每个事件的最高修订即时计算）
+  </p>
+</div>
+
+<div class="card">
+  <h2>配对行程（{{ trips|length }}）</h2>
+  {% if trips %}
+  <table>
+    <thead><tr>
+      <th>进站时间</th><th>进站点</th><th>出站时间</th><th>出站点</th><th>时长</th><th>事件对</th>
+    </tr></thead>
+    <tbody>
+      {% for t in trips %}
+      <tr>
+        <td class="mono">{{ t.in.event_time }}</td>
+        <td>{{ t.in.station }}</td>
+        <td class="mono">{{ t.out.event_time }}</td>
+        <td>{{ t.out.station }}</td>
+        <td>{{ (t.duration_s // 3600) }}小时{{ ((t.duration_s % 3600) // 60) }}分</td>
+        <td class="mono muted">{{ t.in.event_id }} → {{ t.out.event_id }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">没有配对成功的行程。</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>待核查异常（{{ anomalies|length }}）</h2>
+  {% if anomalies %}
+  <table>
+    <thead><tr>
+      <th>事件时间</th><th>站点</th><th>类型</th><th>事件 ID</th><th>修订</th><th>原因</th>
+    </tr></thead>
+    <tbody>
+      {% for a in anomalies %}
+      <tr>
+        <td class="mono">{{ a.event_time }}</td>
+        <td>{{ a.station }}</td>
+        <td>{% if a.direction == 'in' %}<span class="tag warn">进站</span>{% else %}<span class="tag bad">出站</span>{% endif %}</td>
+        <td class="mono">{{ a.event_id }}</td>
+        <td>{{ a.revision }}</td>
+        <td>{{ a.reason }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">没有异常记录。</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>现行事件（最高修订，{{ events|length }}）</h2>
+  <table>
+    <thead><tr>
+      <th>事件 ID</th><th>修订</th><th>时间 (UTC)</th><th>站点</th><th>进出站</th>
+    </tr></thead>
+    <tbody>
+      {% for e in events %}
+      <tr>
+        <td class="mono">{{ e.event_id }}</td>
+        <td>{{ e.revision }}</td>
+        <td class="mono">{{ e.event_time }}</td>
+        <td>{{ e.station }}</td>
+        <td>{{ '进站' if e.direction == 'in' else '出站' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<p><a class="cardlink" href="{{ url_for('index') }}">← 返回首页</a></p>
+{% endblock %}

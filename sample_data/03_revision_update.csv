@@ -1,0 +1,5 @@
+event_id,card_no,event_time,station,direction,revision
+E1002,C001,2026-11-10T08:50:00Z,Beta,out,2
+E1006,C009,2026-11-10T09:35:00Z,Delta,out,2
+E1005,C002,2026-11-10T09:00:00Z,Gamma,in,1
+E1001,C001,2026-11-10T07:59:00Z,Alpha,in,0

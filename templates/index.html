@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="card">
+  <h2>上传补传 CSV</h2>
+  <p class="muted">
+    列：<span class="mono">event_id, card_no, event_time, station, direction, revision</span>；
+    时间为 UTC（如 <span class="mono">2026-11-10T08:30:00Z</span>），direction 取
+    <span class="mono">in/out</span>。每个事件只采用最高修订；同一事件同一修订内容冲突将整批拒绝，原有结果不受影响。
+  </p>
+  <form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".csv,text/csv" required>
+    <button type="submit">上传并合并</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>卡号汇总（{{ summaries|length }}）</h2>
+  {% if summaries %}
+  <table>
+    <thead><tr><th>卡号</th><th>现行事件数</th><th>配对行程</th><th>待核查异常</th><th></th></tr></thead>
+    <tbody>
+      {% for s in summaries %}
+      <tr>
+        <td class="mono">{{ s.card_no }}</td>
+        <td>{{ s.events }}</td>
+        <td>{{ s.trips }}</td>
+        <td>{% if s.anomalies %}<span class="tag warn">{{ s.anomalies }}</span>{% else %}0{% endif %}</td>
+        <td><a class="cardlink" href="{{ url_for('card_detail', card_no=s.card_no) }}">查看明细 →</a></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">暂无数据，请先上传 CSV。</p>
+  {% endif %}
+</div>
+
+<div class="card">
+  <h2>上传批次（最近 50 条）</h2>
+  {% if uploads %}
+  <table>
+    <thead><tr>
+      <th>#</th><th>文件名</th><th>上传时间 (UTC)</th><th>结果</th>
+      <th>有效行</th><th>写入</th><th>过期忽略</th><th>重复忽略</th><th>说明</th>
+    </tr></thead>
+    <tbody>
+      {% for u in uploads %}
+      <tr>
+        <td>{{ u.id }}</td>
+        <td>{{ u.filename }}</td>
+        <td class="mono">{{ u.uploaded_at }}</td>
+        <td>{% if u.status == 'applied' %}<span class="tag ok">已合并</span>{% else %}<span class="tag bad">已拒绝</span>{% endif %}</td>
+        <td>{{ u.rows_total }}</td>
+        <td>{{ u.rows_applied }}</td>
+        <td>{{ u.rows_stale }}</td>
+        <td>{{ u.rows_noop }}</td>
+        <td class="muted">{{ u.message or '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">暂无上传记录。</p>
+  {% endif %}
+</div>
+{% endblock %}
